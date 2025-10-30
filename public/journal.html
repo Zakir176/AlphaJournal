@@ -13,25 +13,20 @@
     <button id="themeToggle">🌓</button>
   </header>
 
-  <main class="journal-container">
-    <form id="entryForm">
-      <label>Date:</label>
+ <main class="journal-container glass">
+  <form id="entryForm">
+    <div class="form-row">
       <input type="date" id="tradeDate">
+      <input type="number" id="pnl" placeholder="Profit/Loss">
+    </div>
+    <textarea id="notes" placeholder="Notes about your trade..."></textarea>
+    <input type="file" id="imageUpload" accept="image/*">
+    <button type="submit" class="cta">Add Entry</button>
+  </form>
 
-      <label>Profit / Loss ($):</label>
-      <input type="number" id="pnl" placeholder="e.g. 250 or -120">
+  <section id="entries" class="entries"></section>
+</main>
 
-      <label>Notes:</label>
-      <textarea id="notes" placeholder="Describe your trade..."></textarea>
-
-      <label>Upload Image:</label>
-      <input type="file" id="imageUpload" accept="image/*">
-      
-      <button type="submit">Add Entry</button>
-    </form>
-
-    <section id="entries"></section>
-  </main>
 
   <script src="js/app.js"></script>
 </body>
