@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', function() {
     initNavigation();
     initScrollAnimations();
     initHeroAnimations();
+    initParallax();
+    initChart();
+    initCounterAnimations();
     
     // Set up CTA buttons
     document.querySelector('.hero-actions .primary').addEventListener('click', function() {
@@ -40,6 +43,9 @@ function initThemeToggle() {
             themeIcon.textContent = '☀️';
             localStorage.setItem('theme', 'dark');
         }
+        
+        // Update chart colors when theme changes
+        initChart();
     });
 }
 
@@ -75,6 +81,146 @@ function initNavigation() {
     });
 }
 
+// Parallax Scrolling
+function initParallax() {
+    const layers = document.querySelectorAll('.parallax-layer');
+    
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        
+        layers.forEach(layer => {
+            const speed = layer.getAttribute('data-speed');
+            const yPos = -(scrolled * speed);
+            layer.style.transform = `translate3d(0, ${yPos}px, 0)`;
+        });
+    });
+}
+
+// Chart.js Implementation
+function initChart() {
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    
+    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, isDark ? 'rgba(10, 132, 255, 0.3)' : 'rgba(0, 122, 255, 0.3)');
+    gradient.addColorStop(1, isDark ? 'rgba(10, 132, 255, 0.1)' : 'rgba(0, 122, 255, 0.1)');
+    
+    // Destroy existing chart if it exists
+    if (window.performanceChartInstance) {
+        window.performanceChartInstance.destroy();
+    }
+    
+    window.performanceChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+            datasets: [{
+                label: 'Portfolio Value',
+                data: [10000, 12000, 11500, 13500, 12500, 14500, 16000],
+                borderColor: isDark ? '#0A84FF' : '#007AFF',
+                backgroundColor: gradient,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: isDark ? '#0A84FF' : '#007AFF',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: isDark ? '#1d1d1f' : '#ffffff',
+                    titleColor: isDark ? '#f5f5f7' : '#1d1d1f',
+                    bodyColor: isDark ? '#a1a1a6' : '#86868b',
+                    borderColor: isDark ? '#424245' : '#d2d2d7',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context) {
+                            return `$${context.parsed.y.toLocaleString()}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                        borderColor: isDark ? '#424245' : '#d2d2d7'
+                    },
+                    ticks: {
+                        color: isDark ? '#a1a1a6' : '#86868b'
+                    }
+                },
+                y: {
+                    grid: {
+                        color: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                        borderColor: isDark ? '#424245' : '#d2d2d7'
+                    },
+                    ticks: {
+                        color: isDark ? '#a1a1a6' : '#86868b',
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 2000,
+                easing: 'easeOutQuart',
+                delay: 1600
+            }
+        }
+    });
+}
+
+// Counter Animations for Stats
+function initCounterAnimations() {
+    const counters = document.querySelectorAll('.stat-value[data-target]');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const counter = entry.target;
+                const target = parseFloat(counter.getAttribute('data-target'));
+                const isDecimal = target % 1 !== 0;
+                
+                animateCounter(counter, target, isDecimal ? 1000 : 2000, isDecimal);
+                observer.unobserve(counter);
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    counters.forEach(counter => observer.observe(counter));
+}
+
+function animateCounter(element, target, duration, isDecimal = false) {
+    const start = 0;
+    const increment = target / (duration / 16);
+    let current = start;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            element.textContent = isDecimal ? target.toFixed(1) + '/5' : 
+                              target >= 1000 ? Math.floor(target).toLocaleString() + '+' : 
+                              '+' + Math.floor(target) + '%';
+            clearInterval(timer);
+        } else {
+            element.textContent = isDecimal ? current.toFixed(1) + '/5' : 
+                              target >= 1000 ? Math.floor(current).toLocaleString() + '+' : 
+                              '+' + Math.floor(current) + '%';
+        }
+    }, 16);
+}
+
 // Scroll animations for elements
 function initScrollAnimations() {
     const observerOptions = {
@@ -85,48 +231,35 @@ function initScrollAnimations() {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
+                entry.target.classList.add('animate');
             }
         });
     }, observerOptions);
     
     // Observe all feature cards and pricing cards
     document.querySelectorAll('.feature-card, .pricing-card').forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(30px)';
-        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         observer.observe(el);
     });
 }
 
 // Hero section animations
 function initHeroAnimations() {
-    const heroTitle = document.querySelector('.hero-title');
-    const heroSubtitle = document.querySelector('.hero-subtitle');
-    const heroActions = document.querySelector('.hero-actions');
-    const heroVisual = document.querySelector('.hero-visual');
+    // Set initial styles for staggered animations
+    const heroElements = {
+        badge: document.querySelector('.hero-badge'),
+        title: document.querySelector('.hero-title'),
+        subtitle: document.querySelector('.hero-subtitle'),
+        actions: document.querySelector('.hero-actions'),
+        stats: document.querySelector('.hero-stats'),
+        visual: document.querySelector('.hero-visual')
+    };
     
-    // Staggered entrance animation
-    setTimeout(() => {
-        heroTitle.style.opacity = '1';
-        heroTitle.style.transform = 'translateY(0)';
-    }, 300);
-    
-    setTimeout(() => {
-        heroSubtitle.style.opacity = '1';
-        heroSubtitle.style.transform = 'translateY(0)';
-    }, 600);
-    
-    setTimeout(() => {
-        heroActions.style.opacity = '1';
-        heroActions.style.transform = 'translateY(0)';
-    }, 900);
-    
-    setTimeout(() => {
-        heroVisual.style.opacity = '1';
-        heroVisual.style.transform = 'translateY(0)';
-    }, 1200);
+    // Reset initial states
+    Object.values(heroElements).forEach(el => {
+        if (el) {
+            el.style.opacity = '0';
+        }
+    });
 }
 
 // Smooth scrolling for navigation links
@@ -153,12 +286,34 @@ window.addEventListener('load', function() {
     document.body.style.opacity = '1';
 });
 
-// Set initial styles for animations
-document.addEventListener('DOMContentLoaded', function() {
-    const heroElements = document.querySelectorAll('.hero-title, .hero-subtitle, .hero-actions, .hero-visual');
-    heroElements.forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(20px)';
-        el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+// Form submission handler
+document.querySelector('.contact-form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Simple form validation
+    const inputs = this.querySelectorAll('input, textarea, select');
+    let isValid = true;
+    
+    inputs.forEach(input => {
+        if (input.hasAttribute('required') && !input.value.trim()) {
+            isValid = false;
+            input.style.borderColor = 'var(--accent-primary)';
+        }
     });
+    
+    if (isValid) {
+        // Show success message (in a real app, you'd send to server)
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        submitBtn.innerHTML = '<span>Sending...</span>';
+        submitBtn.disabled = true;
+        
+        setTimeout(() => {
+            alert('Thank you for your message! We\'ll get back to you within 24 hours.');
+            this.reset();
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }, 2000);
+    }
 });

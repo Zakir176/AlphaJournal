@@ -1,4 +1,4 @@
-/* css/style.css */
+css/style.css
 :root {
     /* Light Theme - Apple Inspired */
     --bg-primary: #ffffff;
@@ -62,6 +62,112 @@ body {
     padding: 0 2rem;
 }
 
+/* Parallax Container */
+.parallax-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.parallax-layer {
+    position: absolute;
+    width: 100%;
+    height: 200%;
+    background-repeat: no-repeat;
+    background-position: center;
+    will-change: transform;
+}
+
+.layer-1 {
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(0, 122, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(88, 86, 214, 0.02) 0%, transparent 50%);
+    transform: translateZ(-100px);
+}
+
+.layer-2 {
+    background-image: 
+        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" opacity="0.02"><path d="M100,200 C400,100 700,300 1000,200 C1300,100 1300,300 1300,200" stroke="%23007AFF" fill="none" stroke-width="2"/></svg>');
+    transform: translateZ(-50px);
+}
+
+.layer-3 {
+    background-image: 
+        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" opacity="0.015"><path d="M50,600 C350,500 650,700 950,600 C1250,500 1250,700 1250,600" stroke="%23007AFF" fill="none" stroke-width="2"/></svg>');
+    transform: translateZ(-25px);
+}
+
+.layer-4 {
+    background-image: 
+        radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.02) 0%, transparent 2%),
+        radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.02) 0%, transparent 2%);
+    transform: translateZ(-10px);
+}
+
+/* Floating Elements */
+.floating-elements {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.floating-element {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    opacity: 0.1;
+    animation: float 6s ease-in-out infinite;
+}
+
+.element-1 {
+    width: 80px;
+    height: 80px;
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.element-2 {
+    width: 120px;
+    height: 120px;
+    top: 60%;
+    right: 10%;
+    animation-delay: 2s;
+}
+
+.element-3 {
+    width: 60px;
+    height: 60px;
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 4s;
+}
+
+.element-4 {
+    width: 100px;
+    height: 100px;
+    top: 30%;
+    right: 20%;
+    animation-delay: 1s;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+    }
+}
+
 /* Navigation */
 .navbar {
     position: fixed;
@@ -73,6 +179,28 @@ body {
     border-bottom: 1px solid var(--border-secondary);
     z-index: 1000;
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Ensure button visibility in light theme */
+:root .cta-btn.primary,
+:root .pricing-btn.primary,
+:root .nav-cta.primary {
+    background: var(--accent-primary);
+    color: #ffffff;
+}
+
+:root .cta-btn.secondary,
+:root .pricing-btn,
+:root .nav-cta.secondary {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-primary);
+}
+
+[data-theme="dark"] .cta-btn.secondary,
+[data-theme="dark"] .pricing-btn,
+[data-theme="dark"] .nav-cta.secondary {
+    background: transparent;
 }
 
 .nav-container {
@@ -215,8 +343,8 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at 20% 80%, rgba(0, 122, 255, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(88, 86, 214, 0.05) 0%, transparent 50%);
+    background: radial-gradient(circle at 20% 80%, rgba(0, 122, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(88, 86, 214, 0.03) 0%, transparent 50%);
 }
 
 .hero-grid {
@@ -232,21 +360,29 @@ body {
     opacity: 0.1;
 }
 
-.hero-chart {
-    position: absolute;
-    top: 50%;
-    right: -10%;
-    width: 40%;
-    height: 200px;
-    background: 
-        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" opacity="0.03"><path d="M0,150 C100,50 200,180 300,100 C400,20 400,150 400,100" stroke="%23007AFF" fill="none" stroke-width="3"/></svg>') center/contain no-repeat;
+.hero-grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    width: 100%;
 }
 
 .hero-content {
     position: relative;
     z-index: 2;
-    max-width: 600px;
-    padding: 4rem 0;
+    animation: slideInLeft 1s ease-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .hero-badge {
@@ -261,6 +397,7 @@ body {
     font-weight: 500;
     color: var(--text-secondary);
     margin-bottom: 2rem;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 
 .hero-badge span {
@@ -273,12 +410,13 @@ body {
 }
 
 .hero-title {
-    font-size: 4rem;
+    font-size: 3.5rem;
     font-weight: 700;
     line-height: 1.05;
     letter-spacing: -0.015em;
     margin-bottom: 1.5rem;
     color: var(--text-primary);
+    animation: fadeInUp 0.8s ease-out 0.4s both;
 }
 
 .gradient-text {
@@ -289,19 +427,21 @@ body {
 }
 
 .hero-subtitle {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     line-height: 1.41667;
     font-weight: 400;
     color: var(--text-secondary);
-    margin-bottom: 3rem;
+    margin-bottom: 2.5rem;
     max-width: 500px;
+    animation: fadeInUp 0.8s ease-out 0.6s both;
 }
 
 .hero-actions {
     display: flex;
     gap: 1rem;
-    margin-bottom: 4rem;
+    margin-bottom: 3rem;
     flex-wrap: wrap;
+    animation: fadeInUp 0.8s ease-out 0.8s both;
 }
 
 .cta-btn {
@@ -325,7 +465,7 @@ body {
 }
 
 .cta-btn.secondary {
-    background: transparent;
+    background: var(--bg-primary);
     color: var(--text-primary);
     border: 1px solid var(--border-primary);
 }
@@ -340,10 +480,16 @@ body {
     box-shadow: 0 8px 32px rgba(88, 86, 214, 0.4);
 }
 
+.cta-btn.full-width {
+    width: 100%;
+    justify-content: center;
+}
+
 .hero-stats {
     display: flex;
     align-items: center;
     gap: 2rem;
+    animation: fadeInUp 0.8s ease-out 1s both;
 }
 
 .stat {
@@ -370,18 +516,39 @@ body {
 }
 
 .hero-visual {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
+    position: relative;
     z-index: 2;
-    width: 50%;
+    animation: slideInRight 1s ease-out 0.5s both;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .macbook-frame {
     position: relative;
-    width: 800px;
-    margin-left: -100px;
+    width: 100%;
+    max-width: 600px;
+    animation: floatMacbook 6s ease-in-out infinite;
+}
+
+@keyframes floatMacbook {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
 .macbook-screen {
@@ -390,12 +557,26 @@ body {
     border-radius: 16px;
     box-shadow: var(--shadow-hover);
     position: relative;
+    transform: translateZ(0);
 }
 
 .app-interface {
     background: var(--bg-primary);
     border-radius: 4px;
     overflow: hidden;
+    opacity: 0;
+    animation: appReveal 1s ease-out 1s forwards;
+}
+
+@keyframes appReveal {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .app-header {
@@ -405,6 +586,19 @@ body {
     align-items: center;
     gap: 1rem;
     border-bottom: 1px solid var(--border-secondary);
+    opacity: 0;
+    animation: slideDown 0.6s ease-out 1.2s forwards;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .app-controls {
@@ -430,34 +624,26 @@ body {
 
 .app-content {
     padding: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.8s ease-out 1.4s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .chart-container {
-    height: 120px;
+    height: 200px;
     background: var(--bg-secondary);
     border-radius: 8px;
     position: relative;
     margin-bottom: 2rem;
     overflow: hidden;
-}
-
-.chart-line {
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: var(--accent-primary);
-}
-
-.chart-point {
-    position: absolute;
-    bottom: 20px;
-    width: 8px;
-    height: 8px;
-    background: var(--accent-primary);
-    border-radius: 50%;
-    transform: translateX(-50%);
 }
 
 .metrics-grid {
@@ -471,6 +657,28 @@ body {
     padding: 1rem;
     background: var(--bg-secondary);
     border-radius: 8px;
+    transition: transform 0.3s ease;
+    opacity: 0;
+    animation: metricReveal 0.6s ease-out forwards;
+}
+
+.metric:nth-child(1) { animation-delay: 1.6s; }
+.metric:nth-child(2) { animation-delay: 1.8s; }
+.metric:nth-child(3) { animation-delay: 2s; }
+
+@keyframes metricReveal {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.metric:hover {
+    transform: translateY(-2px);
 }
 
 .metric-label {
@@ -483,6 +691,16 @@ body {
     font-size: 1.25rem;
     font-weight: 700;
     color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.metric-change {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.metric-change.positive {
+    color: #28ca42;
 }
 
 .macbook-base {
@@ -536,6 +754,12 @@ body {
     box-shadow: var(--shadow);
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     border: 1px solid var(--border-secondary);
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.feature-card.animate {
+    animation: fadeInUp 0.6s ease-out forwards;
 }
 
 .feature-card:hover {
@@ -553,6 +777,13 @@ body {
     justify-content: center;
     margin: 0 auto 2rem;
     color: var(--accent-primary);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+    background: var(--accent-primary);
+    color: white;
+    transform: scale(1.1);
 }
 
 .feature-card h3 {
@@ -591,6 +822,12 @@ body {
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     border: 1px solid var(--border-secondary);
     position: relative;
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.pricing-card.animate {
+    animation: fadeInUp 0.6s ease-out forwards;
 }
 
 .pricing-card.featured {
@@ -659,7 +896,7 @@ body {
     width: 100%;
     padding: 1rem 2rem;
     border: 1px solid var(--border-primary);
-    background: transparent;
+    background: var(--bg-primary);
     color: var(--text-primary);
     border-radius: 980px;
     font-size: 1.0625rem;
@@ -677,6 +914,105 @@ body {
 .pricing-btn:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow);
+}
+
+/* Contact Section */
+.contact {
+    padding: 8rem 0;
+    background: var(--bg-secondary);
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.contact-method {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease;
+}
+
+.contact-method:hover {
+    transform: translateY(-2px);
+}
+
+.method-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.contact-method h4 {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.contact-method p {
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.method-sub {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+}
+
+.contact-form-container {
+    background: var(--bg-primary);
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 1rem;
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
 }
 
 /* Theme Toggle */
@@ -709,19 +1045,42 @@ body {
     transition: transform 0.5s ease;
 }
 
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
+    .hero-grid-layout {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        text-align: center;
+    }
+    
     .hero-title {
         font-size: 3rem;
     }
     
     .hero-visual {
-        width: 45%;
+        order: -1;
     }
     
     .macbook-frame {
-        width: 600px;
-        margin-left: -50px;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 3rem;
     }
 }
 
@@ -743,7 +1102,6 @@ body {
     }
     
     .hero {
-        text-align: center;
         padding: 80px 0 4rem;
     }
     
@@ -758,21 +1116,6 @@ body {
     
     .hero-subtitle {
         font-size: 1.25rem;
-    }
-    
-    .hero-visual {
-        position: relative;
-        width: 100%;
-        top: auto;
-        right: auto;
-        transform: none;
-        margin-top: 3rem;
-    }
-    
-    .macbook-frame {
-        width: 100%;
-        max-width: 500px;
-        margin: 0 auto;
     }
     
     .hero-actions {
@@ -828,5 +1171,14 @@ body {
     .feature-card,
     .pricing-card {
         padding: 2rem 1.5rem;
+    }
+    
+    .contact-method {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .hero-actions {
+        flex-direction: column;
     }
 }
