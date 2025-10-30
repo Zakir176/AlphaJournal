@@ -50,3 +50,25 @@ if (form) {
     dateInput.valueAsDate = new Date();
   });
 }
+
+document.addEventListener("scroll", () => {
+  document.querySelectorAll(".parallax.layer").forEach(layer => {
+    const speed = layer.getAttribute("data-speed");
+    layer.style.transform = `translateY(${window.scrollY * speed}px)`;
+  });
+});
+
+// Fancy theme transition
+const switchTheme = (next) => {
+  document.documentElement.classList.add('theme-transition');
+  document.documentElement.setAttribute("data-theme", next);
+  setTimeout(() => document.documentElement.classList.remove('theme-transition'), 500);
+  localStorage.setItem("theme", next);
+};
+
+if (toggle) {
+  toggle.addEventListener("click", () => {
+    const current = document.documentElement.getAttribute("data-theme");
+    switchTheme(current === "dark" ? "light" : "dark");
+  });
+}

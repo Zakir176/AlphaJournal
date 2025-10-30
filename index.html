@@ -1,38 +1,252 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AlphaJournal — Journal</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body class="journal">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AlphaJournal — Reflect. Refine. Rise.</title>
 
-  <header class="nav">
+  <style>
+    :root {
+      --accent-light: #007aff;
+      --accent-dark: #00c6ff;
+      --bg-light: #f5f5f7;
+      --bg-dark: #000000;
+      --text-light: #1d1d1f;
+      --text-dark: #f5f5f7;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+      scroll-behavior: smooth;
+      height: 100%;
+      background: var(--bg-light);
+      color: var(--text-light);
+    }
+
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    .theme-transition {
+      transition: background 0.6s ease, color 0.6s ease;
+    }
+
+    /* HEADER */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(12px);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .theme-toggle {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: inherit;
+    }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+      perspective: 1000px;
+      background: linear-gradient(180deg, #fefefe, #e9ecf0);
+    }
+
+    .layer {
+      position: absolute;
+      width: 100%;
+      height: 120%;
+      background-size: cover;
+      background-position: center;
+      will-change: transform;
+      transition: transform 0.1s ease-out;
+    }
+
+    /* ✅ LOCAL IMAGES HERE */
+    .layer.bg { 
+      background-image: url('public/assets/images/layer-bg.jpg'); 
+      background-color: #e3e6ea; 
+    }
+    .layer.mid { 
+      background-image: url('public/assets/images/layer-mid.png'); 
+      mix-blend-mode: overlay; 
+      opacity: 0.6; 
+    }
+    .layer.fore { 
+      background-image: url('public/assets/images/layer-fore.png'); 
+      mix-blend-mode: screen; 
+      opacity: 0.5; 
+    }
+
+    /* Gradient fallback if images fail */
+    .layer.bg:before {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at top, rgba(255,255,255,0.8), rgba(0,0,0,0.2));
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      top: 50%;
+      transform: translateY(-50%);
+      text-align: center;
+      padding: 0 2rem;
+      animation: fadeIn 1.5s ease forwards;
+    }
+
+    .gradient-text {
+      font-size: 3.8rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent-light), var(--accent-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-content p {
+      font-size: 1.2rem;
+      margin: 1rem auto 2rem;
+      max-width: 600px;
+      opacity: 0.85;
+    }
+
+    .cta {
+      display: inline-block;
+      background: linear-gradient(90deg, var(--accent-light), var(--accent-dark));
+      color: white;
+      padding: 0.9rem 2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .cta:hover {
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 10px 25px rgba(0,122,255,0.3);
+    }
+
+    .scroll-cue {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 2rem;
+      opacity: 0.6;
+      animation: bounce 1.5s infinite;
+    }
+
+    section {
+      padding: 10rem 2rem;
+      text-align: center;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    section h2 {
+      font-size: 2.2rem;
+      margin-bottom: 1rem;
+    }
+
+    section p {
+      font-size: 1.1rem;
+      opacity: 0.8;
+      line-height: 1.6;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(6px); }
+    }
+
+    @media (max-width: 768px) {
+      .gradient-text { font-size: 2.6rem; }
+      .hero-content p { font-size: 1rem; }
+      section { padding: 6rem 1.2rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
     <h1>AlphaJournal</h1>
-    <button id="themeToggle">🌓</button>
+    <button class="theme-toggle" id="themeToggle">🌓</button>
   </header>
 
-  <main class="journal-container">
-    <form id="entryForm">
-      <label>Date:</label>
-      <input type="date" id="tradeDate">
+  <div class="hero">
+    <div class="layer bg" data-speed="-0.2"></div>
+    <div class="layer mid" data-speed="-0.4"></div>
+    <div class="layer fore" data-speed="-0.7"></div>
 
-      <label>Profit / Loss ($):</label>
-      <input type="number" id="pnl" placeholder="e.g. 250 or -120">
+    <div class="hero-content">
+      <h1 class="gradient-text">Reflect. Refine. Rise.</h1>
+      <p>Your trades deserve design — AlphaJournal brings elegance to discipline.</p>
+      <a href="public/journal.html" class="cta">Enter Journal</a>
+    </div>
 
-      <label>Notes:</label>
-      <textarea id="notes" placeholder="Describe your trade..."></textarea>
+    <div class="scroll-cue">⌄</div>
+  </div>
 
-      <label>Upload Image:</label>
-      <input type="file" id="imageUpload" accept="image/*">
-      
-      <button type="submit">Add Entry</button>
-    </form>
+  <section>
+    <h2>Track Smarter</h2>
+    <p>AlphaJournal transforms your trading history into beautiful insights, helping you identify patterns, habits, and opportunities.</p>
+  </section>
 
-    <section id="entries"></section>
-  </main>
+  <section>
+    <h2>Design that Reflects Focus</h2>
+    <p>Every pixel crafted with precision — inspired by Apple’s design language. Because your workflow deserves clarity and calm.</p>
+  </section>
 
-  <script src="js/app.js"></script>
+  <section>
+    <h2>Made for Growth</h2>
+    <p>Whether you’re day trading or swing trading, AlphaJournal evolves with you — offering data-driven reflection with elegance.</p>
+  </section>
+
+  <script>
+    // Parallax
+    document.addEventListener("scroll", () => {
+      document.querySelectorAll(".layer").forEach(layer => {
+        const speed = layer.getAttribute("data-speed");
+        layer.style.transform = `translateY(${window.scrollY * speed}px)`;
+      });
+    });
+
+    // Theme toggle
+    const toggle = document.getElementById("themeToggle");
+    toggle.addEventListener("click", () => {
+      document.body.classList.add("theme-transition");
+      document.body.classList.toggle("dark");
+      setTimeout(() => document.body.classList.remove("theme-transition"), 600);
+    });
+  </script>
 </body>
 </html>
