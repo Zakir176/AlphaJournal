@@ -1,4 +1,4 @@
-css/style.css
+/* css/style.css */
 :root {
     /* Light Theme - Apple Inspired */
     --bg-primary: #ffffff;
@@ -179,28 +179,6 @@ body {
     border-bottom: 1px solid var(--border-secondary);
     z-index: 1000;
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-/* Ensure button visibility in light theme */
-:root .cta-btn.primary,
-:root .pricing-btn.primary,
-:root .nav-cta.primary {
-    background: var(--accent-primary);
-    color: #ffffff;
-}
-
-:root .cta-btn.secondary,
-:root .pricing-btn,
-:root .nav-cta.secondary {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    border-color: var(--border-primary);
-}
-
-[data-theme="dark"] .cta-btn.secondary,
-[data-theme="dark"] .pricing-btn,
-[data-theme="dark"] .nav-cta.secondary {
-    background: transparent;
 }
 
 .nav-container {
@@ -465,7 +443,7 @@ body {
 }
 
 .cta-btn.secondary {
-    background: var(--bg-primary);
+    background: transparent;
     color: var(--text-primary);
     border: 1px solid var(--border-primary);
 }
@@ -896,7 +874,7 @@ body {
     width: 100%;
     padding: 1rem 2rem;
     border: 1px solid var(--border-primary);
-    background: var(--bg-primary);
+    background: transparent;
     color: var(--text-primary);
     border-radius: 980px;
     font-size: 1.0625rem;
