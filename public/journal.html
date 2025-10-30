@@ -4,13 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AlphaJournal — Journal</title>
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (saved === 'dark' || (!saved && prefersDark)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+        }
+      } catch (e) {}
+    })();
+  </script>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/journal.css">
 </head>
 <body class="journal">
 
   <header class="nav">
     <h1>AlphaJournal</h1>
-    <button id="themeToggle">🌓</button>
+    <button id="themeToggle" aria-label="Switch theme"><span class="theme-icon">🌙</span></button>
   </header>
 
  <main class="journal-container glass">
@@ -29,5 +43,6 @@
 
 
   <script src="js/app.js"></script>
+  <script src="js/journal.js"></script>
 </body>
 </html>
