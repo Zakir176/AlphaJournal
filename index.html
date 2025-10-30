@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Journal | Track Your Trades</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Apple-inspired design system */
+        :root {
+            --primary-color: #007AFF;
+            --background-color: #F5F5F7;
+            --card-color: #FFFFFF;
+            --text-primary: #1D1D1F;
+            --text-secondary: #86868B;
+            --success-color: #34C759;
+            --danger-color: #FF3B30;
+            --border-radius: 12px;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        /* Parallax sections */
+        .parallax-section {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .parallax-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 120%;
+            background-size: cover;
+            background-position: center;
+            transform: translateZ(-1px) scale(2);
+            z-index: -1;
+        }
+
+        .parallax-content {
+            text-align: center;
+            max-width: 800px;
+            padding: 0 20px;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+        }
+
+        /* Journal section */
+        .journal-section {
+            min-height: 100vh;
+            padding: 80px 20px;
+            background-color: var(--background-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .journal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .add-trade-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .add-trade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+        }
+
+        /* Trade cards */
+        .trade-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .trade-card {
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .trade-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .trade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .trade-symbol {
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .trade-profit {
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .profit-positive {
+            color: var(--success-color);
+        }
+
+        .profit-negative {
+            color: var(--danger-color);
+        }
+
+        .trade-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .trade-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-weight: 500;
+        }
+
+        .trade-image {
+            width: 100%;
+            height: 180px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-top: 12px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #D2D2D7;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1px solid #D2D2D7;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            h2 {
+                font-size: 2rem;
+            }
+            
+            .trade-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Parallax Landing Section -->
+    <section class="parallax-section">
+        <div class="parallax-bg" style="background-image: url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');"></div>
+        <div class="parallax-content">
+            <h1>Track Your Trades</h1>
+            <p>A sophisticated trading journal with Apple-inspired design to help you analyze your performance and improve your strategy.</p>
+            <a href="#journal" class="btn">View Your Journal</a>
+        </div>
+    </section>
+
+    <!-- Journal Section -->
+    <section id="journal" class="journal-section">
+        <div class="container">
+            <div class="journal-header">
+                <h2>Trading Journal</h2>
+                <button class="add-trade-btn" id="openModal">
+                    <i class="fas fa-plus"></i> Add Trade
+                </button>
+            </div>
+
+            <div class="trade-cards" id="tradeCards">
+                <!-- Trade cards will be dynamically added here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Add Trade Modal -->
+    <div class="modal" id="addTradeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Trade</h3>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <form id="tradeForm">
+                <div class="form-group">
+                    <label class="form-label" for="symbol">Symbol</label>
+                    <input type="text" class="form-input" id="symbol" placeholder="e.g., AAPL" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="date">Date</label>
+                    <input type="date" class="form-input" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="entryPrice">Entry Price</label>
+                    <input type="number" class="form-input" id="entryPrice" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="exitPrice">Exit Price</label>
+                    <input type="number" class="form-input" id="exitPrice" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="quantity">Quantity</label>
+                    <input type="number" class="form-input" id="quantity" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="notes">Notes</label>
+                    <textarea class="form-input" id="notes" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="image">Image URL (optional)</label>
+                    <input type="text" class="form-input" id="image" placeholder="Paste image URL">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn">Save Trade</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const openModalBtn = document.getElementById('openModal');
+        const closeModalBtn = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const modal = document.getElementById('addTradeModal');
+        const tradeForm = document.getElementById('tradeForm');
+        const tradeCards = document.getElementById('tradeCards');
+        const dateInput = document.getElementById('date');
+
+        // Set default date to today
+        dateInput.valueAsDate = new Date();
+
+        // Modal Functions
+        openModalBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Form Submission
+        tradeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const symbol = document.getElementById('symbol').value;
+            const date = document.getElementById('date').value;
+            const entryPrice = parseFloat(document.getElementById('entryPrice').value);
+            const exitPrice = parseFloat(document.getElementById('exitPrice').value);
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const notes = document.getElementById('notes').value;
+            const image = document.getElementById('image').value;
+            
+            // Calculate profit/loss
+            const profit = (exitPrice - entryPrice) * quantity;
+            
+            // Create trade card
+            createTradeCard(symbol, date, entryPrice, exitPrice, quantity, profit, notes, image);
+            
+            // Reset form and close modal
+            tradeForm.reset();
+            dateInput.valueAsDate = new Date();
+            modal.style.display = 'none';
+        });
+
+        // Create Trade Card Function
+        function createTradeCard(symbol, date, entryPrice, exitPrice, quantity, profit, notes, image) {
+            const tradeCard = document.createElement('div');
+            tradeCard.className = 'trade-card';
+            
+            const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
+            const profitSign = profit >= 0 ? '+' : '';
+            
+            tradeCard.innerHTML = `
+                <div class="trade-header">
+                    <div class="trade-symbol">${symbol}</div>
+                    <div class="trade-profit ${profitClass}">${profitSign}$${profit.toFixed(2)}</div>
+                </div>
+                <div class="trade-details">
+                    <div class="trade-detail">
+                        <span class="detail-label">Date</span>
+                        <span class="detail-value">${formatDate(date)}</span>
+                    </div>
+                    <div class="trade-detail">
+                        <span class="detail-label">Entry Price</span>
+                        <span class="detail-value">$${entryPrice.toFixed(2)}</span>
+                    </div>
+                    <div class="trade-detail">
+                        <span class="detail-label">Exit Price</span>
+                        <span class="detail-value">$${exitPrice.toFixed(2)}</span>
+                    </div>
+                    <div class="trade-detail">
+                        <span class="detail-label">Quantity</span>
+                        <span class="detail-value">${quantity}</span>
+                    </div>
+                </div>
+                ${notes ? `<div class="trade-notes"><span class="detail-label">Notes</span><p>${notes}</p></div>` : ''}
+                ${image ? `<img src="${image}" alt="Trade image" class="trade-image">` : ''}
+            `;
+            
+            tradeCards.prepend(tradeCard);
+        }
+
+        // Format date for display
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString(undefined, options);
+        }
+
+        // Parallax scrolling effect
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallaxBg = document.querySelector('.parallax-bg');
+            parallaxBg.style.transform = `translateY(${scrolled * 0.5}px) scale(1.2)`;
+        });
+
+        // Add some sample trades for demonstration
+        window.addEventListener('DOMContentLoaded', () => {
+            createTradeCard('AAPL', '2023-06-15', 145.32, 148.75, 100, 343, 'Strong breakout above resistance', 'https://images.unsplash.com/photo-1592838064575-70ed626d3a0e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80');
+            createTradeCard('TSLA', '2023-06-10', 245.50, 240.25, 50, -262.5, 'Failed to hold support level', '');
+            createTradeCard('MSFT', '2023-06-05', 335.67, 342.80, 75, 534.75, 'Earnings play worked well', 'https://images.unsplash.com/photo-1563986768609-322da13575f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80');
+        });
+    </script>
+</body>
+</html>
