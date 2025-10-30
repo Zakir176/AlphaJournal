@@ -10,17 +10,28 @@ document.addEventListener('DOMContentLoaded', function() {
     initCounterAnimations();
     
     // Set up CTA buttons
-    document.querySelector('.hero-actions .primary').addEventListener('click', function() {
-        document.getElementById('pricing').scrollIntoView({ 
-            behavior: 'smooth' 
+    const pricingBtn = document.querySelector('.js-scroll-pricing');
+    if (pricingBtn) {
+        pricingBtn.addEventListener('click', function() {
+            const pricing = document.getElementById('pricing');
+            if (pricing) {
+                pricing.scrollIntoView({ behavior: 'smooth' });
+            }
         });
-    });
+    }
+    // Set footer year
+    const yearEl = document.getElementById('year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+    // Build calendar
+    initCalendar();
 });
 
 // Theme Toggle Functionality
 function initThemeToggle() {
     const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = themeToggle.querySelector('.theme-icon');
+    if (!themeToggle) return;
+    const themeIcon = themeToggle.querySelector ? themeToggle.querySelector('.theme-icon') : null;
     
     // Check for saved theme or prefer color scheme
     const savedTheme = localStorage.getItem('theme');
@@ -28,7 +39,19 @@ function initThemeToggle() {
     
     if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
         document.documentElement.setAttribute('data-theme', 'dark');
-        themeIcon.textContent = '☀️';
+        if (themeIcon) {
+            themeIcon.textContent = '☀️';
+        } else {
+            themeToggle.textContent = '☀️';
+        }
+        themeToggle.setAttribute('aria-label', 'Switch to light mode');
+    } else {
+        if (themeIcon) {
+            themeIcon.textContent = '🌙';
+        } else {
+            themeToggle.textContent = '🌙';
+        }
+        themeToggle.setAttribute('aria-label', 'Switch to dark mode');
     }
     
     themeToggle.addEventListener('click', () => {
@@ -36,11 +59,21 @@ function initThemeToggle() {
         
         if (currentTheme === 'dark') {
             document.documentElement.removeAttribute('data-theme');
-            themeIcon.textContent = '🌙';
+            if (themeIcon) {
+                themeIcon.textContent = '🌙';
+            } else {
+                themeToggle.textContent = '🌙';
+            }
+            themeToggle.setAttribute('aria-label', 'Switch to dark mode');
             localStorage.setItem('theme', 'light');
         } else {
             document.documentElement.setAttribute('data-theme', 'dark');
-            themeIcon.textContent = '☀️';
+            if (themeIcon) {
+                themeIcon.textContent = '☀️';
+            } else {
+                themeToggle.textContent = '☀️';
+            }
+            themeToggle.setAttribute('aria-label', 'Switch to light mode');
             localStorage.setItem('theme', 'dark');
         }
         
@@ -83,6 +116,7 @@ function initNavigation() {
 
 // Parallax Scrolling
 function initParallax() {
+    if (window.innerWidth < 768) return; // Disable parallax on small screens
     const layers = document.querySelectorAll('.parallax-layer');
     
     window.addEventListener('scroll', () => {
@@ -285,6 +319,87 @@ initSmoothScrolling();
 window.addEventListener('load', function() {
     document.body.style.opacity = '1';
 });
+
+// Calendar: generate current month with demo P/L data
+function initCalendar() {
+    const grid = document.querySelector('.calendar-grid');
+    const monthEl = document.getElementById('calMonth');
+    const yearEl = document.getElementById('calYear');
+    const tooltip = document.getElementById('calTooltip');
+    if (!grid || !monthEl || !yearEl || !tooltip) return;
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-11
+    const first = new Date(year, month, 1);
+    const startDow = first.getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    monthEl.textContent = monthNames[month];
+    yearEl.textContent = String(year);
+
+    // Demo data: map day number -> amount (positive profit, negative loss)
+    const demo = {
+        2: 120.5,
+        3: -45.2,
+        7: 310,
+        9: -85,
+        12: 60,
+        16: -140,
+        18: 225.75,
+        21: -30.5,
+        24: 90,
+        27: -15,
+    };
+
+    // Clear any previous days (keep DOW headers: first 7 children)
+    while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+
+    // Add leading empty cells
+    for (let i = 0; i < startDow; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cal-day empty';
+        grid.appendChild(cell);
+    }
+
+    // Add days
+    for (let d = 1; d <= daysInMonth; d++) {
+        const cell = document.createElement('div');
+        cell.className = 'cal-day';
+        const num = document.createElement('div');
+        num.className = 'num';
+        num.textContent = String(d);
+
+        const pl = document.createElement('div');
+        pl.className = 'pl';
+        if (demo[d] != null) {
+            const amt = Number(demo[d]);
+            const isProfit = amt >= 0;
+            pl.textContent = (isProfit ? '+' : '-') + '$' + Math.abs(amt).toFixed(2);
+            cell.classList.add(isProfit ? 'profit' : 'loss', 'has-pl');
+            cell.style.animationDelay = (d * 4) + 'ms';
+
+            cell.addEventListener('mousemove', (e) => {
+                tooltip.textContent = `${monthNames[month]} ${d}, ${year}: ${isProfit ? '+' : '-'}$${Math.abs(amt).toFixed(2)}`;
+                tooltip.style.left = (e.clientX + 12) + 'px';
+                tooltip.style.top = (e.clientY + 12) + 'px';
+                tooltip.classList.add('visible');
+                tooltip.setAttribute('aria-hidden', 'false');
+            });
+            cell.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('visible');
+                tooltip.setAttribute('aria-hidden', 'true');
+            });
+        } else {
+            pl.textContent = '';
+        }
+
+        cell.appendChild(num);
+        cell.appendChild(pl);
+        grid.appendChild(cell);
+    }
+}
 
 // Form submission handler
 document.querySelector('.contact-form')?.addEventListener('submit', function(e) {
