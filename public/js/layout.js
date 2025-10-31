@@ -12,23 +12,37 @@ class LayoutManager {
         const menuToggle = document.getElementById('menuToggle');
         const sidebar = document.querySelector('.sidebar');
 
-        menuToggle?.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
+        if (menuToggle && sidebar) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
 
-        // Close sidebar when clicking on a link on mobile
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                if (window.innerWidth <= 1024) {
+            // Close sidebar when clicking on a link on mobile
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    if (window.innerWidth <= 1024) {
+                        sidebar.classList.remove('open');
+                    }
+                });
+            });
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 1024 && 
+                    sidebar.classList.contains('open') && 
+                    !sidebar.contains(e.target) && 
+                    !menuToggle.contains(e.target)) {
                     sidebar.classList.remove('open');
                 }
             });
-        });
+        }
     }
 
     setupTheme() {
         const themeToggle = document.getElementById('themeToggle');
-        themeToggle?.addEventListener('click', () => this.toggleTheme());
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => this.toggleTheme());
+        }
 
         // Initialize theme
         this.initializeTheme();
@@ -63,4 +77,13 @@ class LayoutManager {
 // Initialize layout when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.layoutManager = new LayoutManager();
+    
+    // Initialize AOS animations
+    if (typeof AOS !== 'undefined') {
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+    }
 });

@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Journal | Dashboard</title>
+    <title>Trade Journal | AlphaJournal</title>
+    
+    <!-- Libraries -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Our Styles -->
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/journal.css">
 </head>
@@ -13,23 +19,23 @@
         <nav class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <div class="logo-icon">📊</div>
-                    <h1>TradeMaster</h1>
+                    <div class="logo-icon">📈</div>
+                    <h1>AlphaJournal</h1>
                 </div>
             </div>
 
             <div class="nav-section">
-                <div class="nav-label">MAIN</div>
+                <div class="nav-label">TRADING SUITE</div>
                 <a href="dashboard.html" class="nav-item">
-                    <span class="nav-icon">📈</span>
+                    <span class="nav-icon">📊</span>
                     <span class="nav-text">Dashboard</span>
                 </a>
                 <a href="journal.html" class="nav-item active">
-                    <span class="nav-icon">📒</span>
-                    <span class="nav-text">Trade Log</span>
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-text">Trade Journal</span>
                 </a>
                 <a href="analytics.html" class="nav-item">
-                    <span class="nav-icon">📊</span>
+                    <span class="nav-icon">📈</span>
                     <span class="nav-text">Analytics</span>
                 </a>
                 <a href="calendar.html" class="nav-item">
@@ -42,7 +48,7 @@
                 <div class="nav-label">TOOLS</div>
                 <a href="screener.html" class="nav-item">
                     <span class="nav-icon">🔍</span>
-                    <span class="nav-text">Stock Screener</span>
+                    <span class="nav-text">Screener</span>
                 </a>
                 <a href="watchlist.html" class="nav-item">
                     <span class="nav-icon">⭐</span>
@@ -50,7 +56,7 @@
                 </a>
                 <a href="calculator.html" class="nav-item">
                     <span class="nav-icon">🧮</span>
-                    <span class="nav-text">Risk Calculator</span>
+                    <span class="nav-text">Calculator</span>
                 </a>
             </div>
 
@@ -62,7 +68,7 @@
                 </a>
                 <a href="backup.html" class="nav-item">
                     <span class="nav-icon">💾</span>
-                    <span class="nav-text">Backup & Export</span>
+                    <span class="nav-text">Backup</span>
                 </a>
             </div>
         </nav>
@@ -73,9 +79,9 @@
             <header class="top-header">
                 <div class="header-left">
                     <button class="menu-toggle" id="menuToggle">
-                        <span>≡</span>
+                        <span>☰</span>
                     </button>
-                    <h2 class="page-title">Trade Log</h2>
+                    <h2 class="page-title">Trade Journal</h2>
                 </div>
                 <div class="header-controls">
                     <button class="theme-toggle" id="themeToggle">
@@ -86,21 +92,199 @@
 
             <!-- Page Content -->
             <div class="page-content">
-                <!-- Your existing trade log content here -->
-                <section class="form-section">
-                    <h3>Add New Trade</h3>
+                <!-- Stats Overview -->
+                <div class="stats-overview" data-aos="fade-up">
+                    <div class="stat-card">
+                        <div class="stat-icon">💹</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalProfit">$0.00</div>
+                            <div class="stat-label">Total Profit</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalTrades">0</div>
+                            <div class="stat-label">Total Trades</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="winRate">0%</div>
+                            <div class="stat-label">Win Rate</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="avgTrade">$0.00</div>
+                            <div class="stat-label">Avg. Trade</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions" data-aos="fade-up" data-aos-delay="100">
+                    <button class="quick-action-btn primary" id="quickAdd">
+                        <span class="btn-icon">➕</span>
+                        Quick Add Trade
+                    </button>
+                    <button class="quick-action-btn" id="importTrades">
+                        <span class="btn-icon">📥</span>
+                        Import CSV
+                    </button>
+                    <button class="quick-action-btn" id="exportTrades">
+                        <span class="btn-icon">📤</span>
+                        Export Data
+                    </button>
+                </div>
+
+                <!-- Main Form Section -->
+                <section class="form-section" data-aos="fade-up" data-aos-delay="200">
+                    <div class="section-header">
+                        <h3>Log New Trade</h3>
+                        <div class="section-actions">
+                            <button class="btn-secondary" id="clearForm">
+                                <span class="btn-icon">🗑️</span>
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
                     <form id="tradeForm" class="trade-form">
-                        <!-- Form fields -->
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="tradeDate">Date & Time</label>
+                                <input type="text" id="tradeDate" class="flatpickr-input" placeholder="Select date and time" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="symbol">Symbol</label>
+                                <input type="text" id="symbol" placeholder="e.g., AAPL" class="symbol-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="tradeType">Type</label>
+                                <select id="tradeType" class="select-input">
+                                    <option value="">Select type</option>
+                                    <option value="long">Long</option>
+                                    <option value="short">Short</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="quantity">Quantity</label>
+                                <input type="number" id="quantity" placeholder="0" class="number-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="entryPrice">Entry Price</label>
+                                <input type="number" id="entryPrice" step="0.0001" placeholder="0.0000" class="number-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="exitPrice">Exit Price</label>
+                                <input type="number" id="exitPrice" step="0.0001" placeholder="0.0000" class="number-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="pnl">P/L ($)</label>
+                                <input type="number" id="pnl" step="0.01" placeholder="0.00" class="number-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="strategy">Strategy</label>
+                                <select id="strategy" class="select-input">
+                                    <option value="">Select strategy</option>
+                                    <option value="breakout">Breakout</option>
+                                    <option value="reversal">Reversal</option>
+                                    <option value="momentum">Momentum</option>
+                                    <option value="scalping">Scalping</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="notes">Trade Notes</label>
+                                <textarea id="notes" placeholder="Describe your trade setup, reasoning, and lessons learned..." rows="4" class="textarea-input"></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="screenshot">Screenshots</label>
+                                <div class="file-upload-area" id="fileUploadArea">
+                                    <div class="upload-placeholder">
+                                        <span class="upload-icon">📎</span>
+                                        <p>Drag & drop screenshots or click to upload</p>
+                                        <span class="upload-subtext">Supports PNG, JPG up to 5MB</span>
+                                    </div>
+                                    <input type="file" id="screenshot" accept="image/*" class="file-input" multiple>
+                                </div>
+                                <div class="image-previews" id="imagePreviews"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">
+                                <span class="btn-icon">💾</span>
+                                Save Trade
+                            </button>
+                        </div>
                     </form>
                 </section>
 
-                <section class="entries-section">
-                    <!-- Entries grid -->
+                <!-- Trade History -->
+                <section class="history-section" data-aos="fade-up" data-aos-delay="300">
+                    <div class="section-header">
+                        <h3>Trade History</h3>
+                        <div class="section-controls">
+                            <div class="search-box">
+                                <input type="text" id="searchTrades" placeholder="Search trades..." class="search-input">
+                                <span class="search-icon">🔍</span>
+                            </div>
+                            <select id="filterTrades" class="filter-select">
+                                <option value="all">All Trades</option>
+                                <option value="profit">Profitable</option>
+                                <option value="loss">Loss</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="trades-container">
+                        <div id="tradesList" class="trades-list">
+                            <!-- Trades will be populated here -->
+                        </div>
+                        <div id="emptyState" class="empty-state">
+                            <div class="empty-icon">📊</div>
+                            <h3>No trades yet</h3>
+                            <p>Start by logging your first trade to track your performance</p>
+                            <button class="btn-primary" id="addFirstTrade">
+                                <span class="btn-icon">➕</span>
+                                Add Your First Trade
+                            </button>
+                        </div>
+                    </div>
                 </section>
             </div>
         </main>
     </div>
 
+    <!-- Edit Trade Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Trade</h3>
+                <button class="close-modal" id="closeModal">✕</button>
+            </div>
+            <form id="editForm" class="trade-form">
+                <input type="hidden" id="editId">
+                <!-- Form fields same as main form -->
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancelEdit">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <!-- Our Scripts -->
     <script src="js/layout.js"></script>
     <script src="js/journal.js"></script>
 </body>
