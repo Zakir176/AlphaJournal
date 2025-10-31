@@ -1,178 +1,439 @@
-// Trading Journal logic: auto-date, image preview, localStorage CRUD
+class TradingJournal {
+    constructor() {
+        this.entries = this.loadEntries();
+        this.currentEditId = null;
+        this.init();
+    }
 
-(function() {
-    const STORAGE_KEY = 'journalEntries';
+    init() {
+        this.setupEventListeners();
+        this.setTodayDate();
+        this.renderEntries();
+        this.updateStats();
+        this.setupTheme();
+    }
 
-    const form = document.getElementById('entryForm');
-    if (!form) return;
+    setupEventListeners() {
+        // Form submission
+        document.getElementById('tradeForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addEntry();
+        });
 
-    const dateInput = document.getElementById('tradeDate');
-    const amountInput = document.getElementById('pnl');
-    const notesInput = document.getElementById('notes');
-    const imageInput = document.getElementById('imageUpload');
-    const entriesEl = document.getElementById('entries');
+        // Edit form submission
+        document.getElementById('editForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveEdit();
+        });
 
-    // Prefill date to today
-    dateInput.value = new Date().toISOString().slice(0, 10);
+        // Image upload
+        document.getElementById('tradeImage').addEventListener('change', (e) => {
+            this.handleImageUpload(e);
+        });
 
-    // Image preview helper
-    const previewEl = document.createElement('div');
-    previewEl.className = 'preview';
-    imageInput.insertAdjacentElement('afterend', previewEl);
+        // Remove image
+        document.getElementById('removeImage').addEventListener('click', () => {
+            this.clearImagePreview();
+        });
 
-    imageInput.addEventListener('change', () => {
-        const file = imageInput.files && imageInput.files[0];
-        if (!file) { previewEl.textContent = ''; previewEl.classList.remove('visible'); return; }
-        const sizeKB = Math.round(file.size / 1024);
-        previewEl.textContent = `Selected: ${file.name} (${sizeKB} KB)`;
-        previewEl.classList.add('visible');
-    });
+        // Filters
+        document.getElementById('filterType').addEventListener('change', () => {
+            this.renderEntries();
+        });
 
-    // Load entries
-    function loadEntries() {
+        document.getElementById('sortBy').addEventListener('change', () => {
+            this.renderEntries();
+        });
+
+        // Export CSV
+        document.getElementById('exportCSV').addEventListener('click', () => {
+            this.exportToCSV();
+        });
+
+        // Modal controls
+        document.getElementById('closeModal').addEventListener('click', () => {
+            this.closeModal();
+        });
+
+        document.getElementById('cancelEdit').addEventListener('click', () => {
+            this.closeModal();
+        });
+
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            this.toggleTheme();
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('editModal').addEventListener('click', (e) => {
+            if (e.target.id === 'editModal') {
+                this.closeModal();
+            }
+        });
+    }
+
+    loadEntries() {
         try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        } catch (_) {
+            const saved = localStorage.getItem('tradingEntries');
+            return saved ? JSON.parse(saved) : [];
+        } catch (error) {
+            console.error('Error loading entries:', error);
             return [];
         }
     }
 
-    function saveEntries(entries) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    setTodayDate() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('tradeDate').value = today;
     }
 
-    function toBase64(file) {
-        return new Promise((resolve, reject) => {
+    handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
             const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
+            reader.onload = (e) => {
+                const preview = document.getElementById('imagePreview');
+                const previewImage = document.getElementById('previewImage');
+                previewImage.src = e.target.result;
+                preview.classList.add('show');
+            };
             reader.readAsDataURL(file);
+        }
+    }
+
+    clearImagePreview() {
+        document.getElementById('tradeImage').value = '';
+        document.getElementById('imagePreview').classList.remove('show');
+        document.getElementById('previewImage').src = '';
+    }
+
+    addEntry() {
+        const formData = this.getFormData();
+        if (!formData) return;
+
+        const entry = {
+            id: Date.now().toString(),
+            date: formData.date,
+            desc: formData.desc.trim(),
+            amount: parseFloat(formData.amount),
+            image: document.getElementById('previewImage').src || null
+        };
+
+        this.entries.unshift(entry);
+        this.saveEntries();
+        this.renderEntries();
+        this.updateStats();
+        this.clearForm();
+        
+        // Show success feedback
+        this.showNotification('Trade added successfully!', 'success');
+    }
+
+    getFormData() {
+        const date = document.getElementById('tradeDate').value;
+        const amount = document.getElementById('tradeAmount').value;
+        const desc = document.getElementById('tradeDesc').value;
+
+        if (!date || !amount || !desc) {
+            this.showNotification('Please fill in all required fields', 'error');
+            return null;
+        }
+
+        return { date, amount, desc };
+    }
+
+    clearForm() {
+        document.getElementById('tradeForm').reset();
+        this.setTodayDate();
+        this.clearImagePreview();
+    }
+
+    editEntry(id) {
+        const entry = this.entries.find(e => e.id === id);
+        if (!entry) return;
+
+        this.currentEditId = id;
+        document.getElementById('editId').value = id;
+        document.getElementById('editDate').value = entry.date;
+        document.getElementById('editAmount').value = entry.amount;
+        document.getElementById('editDesc').value = entry.desc;
+
+        this.openModal();
+    }
+
+    saveEdit() {
+        const id = document.getElementById('editId').value;
+        const entryIndex = this.entries.findIndex(e => e.id === id);
+        
+        if (entryIndex === -1) return;
+
+        const formData = this.getEditFormData();
+        if (!formData) return;
+
+        this.entries[entryIndex] = {
+            ...this.entries[entryIndex],
+            date: formData.date,
+            amount: parseFloat(formData.amount),
+            desc: formData.desc.trim()
+        };
+
+        this.saveEntries();
+        this.renderEntries();
+        this.updateStats();
+        this.closeModal();
+        
+        this.showNotification('Trade updated successfully!', 'success');
+    }
+
+    getEditFormData() {
+        const date = document.getElementById('editDate').value;
+        const amount = document.getElementById('editAmount').value;
+        const desc = document.getElementById('editDesc').value;
+
+        if (!date || !amount || !desc) {
+            this.showNotification('Please fill in all required fields', 'error');
+            return null;
+        }
+
+        return { date, amount, desc };
+    }
+
+    deleteEntry(id) {
+        if (confirm('Are you sure you want to delete this trade entry?')) {
+            this.entries = this.entries.filter(entry => entry.id !== id);
+            this.saveEntries();
+            this.renderEntries();
+            this.updateStats();
+            this.showNotification('Trade deleted successfully!', 'success');
+        }
+    }
+
+    getFilteredAndSortedEntries() {
+        const filterType = document.getElementById('filterType').value;
+        const sortBy = document.getElementById('sortBy').value;
+
+        let filtered = [...this.entries];
+
+        // Apply filters
+        if (filterType === 'profit') {
+            filtered = filtered.filter(entry => entry.amount > 0);
+        } else if (filterType === 'loss') {
+            filtered = filtered.filter(entry => entry.amount < 0);
+        }
+
+        // Apply sorting
+        switch (sortBy) {
+            case 'date-desc':
+                filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+                break;
+            case 'date-asc':
+                filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+                break;
+            case 'amount-desc':
+                filtered.sort((a, b) => b.amount - a.amount);
+                break;
+            case 'amount-asc':
+                filtered.sort((a, b) => a.amount - b.amount);
+                break;
+        }
+
+        return filtered;
+    }
+
+    renderEntries() {
+        const container = document.getElementById('entriesContainer');
+        const emptyState = document.getElementById('emptyState');
+        const entries = this.getFilteredAndSortedEntries();
+
+        if (entries.length === 0) {
+            container.style.display = 'none';
+            emptyState.classList.add('show');
+            return;
+        }
+
+        container.style.display = 'grid';
+        emptyState.classList.remove('show');
+
+        container.innerHTML = entries.map(entry => this.createEntryCard(entry)).join('');
+    }
+
+    createEntryCard(entry) {
+        const isProfit = entry.amount >= 0;
+        const amountClass = isProfit ? 'amount-profit' : 'amount-loss';
+        const amountSign = isProfit ? '+' : '';
+        
+        return `
+            <div class="entry-card ${isProfit ? 'profit' : 'loss'}">
+                <div class="entry-header">
+                    <div class="entry-date">${this.formatDate(entry.date)}</div>
+                    <div class="entry-amount ${amountClass}">
+                        ${amountSign}$${Math.abs(entry.amount).toFixed(2)}
+                    </div>
+                </div>
+                <div class="entry-desc">${this.escapeHtml(entry.desc)}</div>
+                ${entry.image ? `
+                    <img src="${entry.image}" alt="Trade screenshot" class="entry-image" 
+                         onclick="journal.viewImage('${entry.image}')">
+                ` : ''}
+                <div class="entry-actions">
+                    <button class="action-btn edit-btn" onclick="journal.editEntry('${entry.id}')">
+                        Edit
+                    </button>
+                    <button class="action-btn delete-btn" onclick="journal.deleteEntry('${entry.id}')">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    viewImage(src) {
+        window.open(src, '_blank');
+    }
+
+    updateStats() {
+        const totalTrades = this.entries.length;
+        const totalProfit = this.entries
+            .filter(entry => entry.amount > 0)
+            .reduce((sum, entry) => sum + entry.amount, 0);
+        const totalLoss = this.entries
+            .filter(entry => entry.amount < 0)
+            .reduce((sum, entry) => sum + entry.amount, 0);
+
+        document.getElementById('totalTrades').textContent = totalTrades;
+        document.getElementById('totalProfit').textContent = `$${totalProfit.toFixed(2)}`;
+        document.getElementById('totalLoss').textContent = `$${Math.abs(totalLoss).toFixed(2)}`;
+    }
+
+    exportToCSV() {
+        if (this.entries.length === 0) {
+            this.showNotification('No entries to export', 'error');
+            return;
+        }
+
+        const headers = ['Date', 'Description', 'Profit/Loss', 'Image'];
+        const csvData = this.entries.map(entry => [
+            entry.date,
+            `"${entry.desc.replace(/"/g, '""')}"`,
+            entry.amount,
+            entry.image ? 'Yes' : 'No'
+        ]);
+
+        const csvContent = [headers, ...csvData]
+            .map(row => row.join(','))
+            .join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', `trading-journal-${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        this.showNotification('CSV exported successfully!', 'success');
+    }
+
+    openModal() {
+        document.getElementById('editModal').classList.add('show');
+    }
+
+    closeModal() {
+        document.getElementById('editModal').classList.remove('show');
+        this.currentEditId = null;
+    }
+
+    setupTheme() {
+        const savedTheme = localStorage.getItem('theme') || 
+                          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        this.setTheme(savedTheme);
+    }
+
+    setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        this.updateThemeIcon(theme);
+    }
+
+    toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        this.setTheme(newTheme);
+    }
+
+    updateThemeIcon(theme) {
+        const icon = document.querySelector('.theme-icon');
+        icon.textContent = theme === 'light' ? '🌙' : '☀️';
+    }
+
+    formatDate(dateString) {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
         });
     }
 
-    function render(entries) {
-        entriesEl.innerHTML = '';
-        if (!entries.length) return;
-        entries
-            .slice()
-            .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
-            .forEach((entry, idx) => {
-                const card = document.createElement('article');
-                card.className = 'entry-card';
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 
-                const main = document.createElement('div');
-                main.className = 'entry-main';
+    saveEntries() {
+        try {
+            localStorage.setItem('tradingEntries', JSON.stringify(this.entries));
+        } catch (error) {
+            console.error('Error saving entries:', error);
+            this.showNotification('Error saving entries', 'error');
+        }
+    }
 
-                const header = document.createElement('div');
-                header.className = 'entry-header';
-
-                const date = document.createElement('span');
-                date.className = 'entry-date';
-                date.textContent = entry.date || '';
-
-                const amount = document.createElement('span');
-                amount.className = 'entry-amount ' + (entry.amount >= 0 ? 'profit' : 'loss');
-                amount.textContent = (entry.amount >= 0 ? '+' : '') + Number(entry.amount).toFixed(2);
-
-                header.appendChild(date);
-                header.appendChild(amount);
-
-                const desc = document.createElement('p');
-                desc.textContent = entry.desc || '';
-
-                main.appendChild(header);
-                main.appendChild(desc);
-
-                if (entry.image) {
-                    const img = document.createElement('img');
-                    img.src = entry.image;
-                    img.alt = 'Trade attachment';
-                    img.className = 'entry-image';
-                    main.appendChild(img);
+    showNotification(message, type) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        
+        // Add styles
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            z-index: 1001;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            ${type === 'success' ? 'background: var(--success);' : 'background: var(--danger);'}
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
                 }
-
-                const actions = document.createElement('div');
-                actions.className = 'entry-actions';
-
-                const editBtn = document.createElement('button');
-                editBtn.className = 'btn';
-                editBtn.textContent = 'Edit';
-                editBtn.addEventListener('click', () => onEdit(idx));
-
-                const delBtn = document.createElement('button');
-                delBtn.className = 'btn danger';
-                delBtn.textContent = 'Delete';
-                delBtn.addEventListener('click', () => onDelete(idx));
-
-                actions.appendChild(editBtn);
-                actions.appendChild(delBtn);
-
-                card.appendChild(main);
-                card.appendChild(actions);
-                entriesEl.appendChild(card);
-            });
+            }, 300);
+        }, 3000);
     }
+}
 
-    function onDelete(index) {
-        const entries = loadEntries();
-        entries.splice(index, 1);
-        saveEntries(entries);
-        render(entries);
-    }
-
-    function onEdit(index) {
-        const entries = loadEntries();
-        const e = entries[index];
-        if (!e) return;
-        dateInput.value = e.date || new Date().toISOString().slice(0, 10);
-        amountInput.value = typeof e.amount === 'number' ? e.amount : '';
-        notesInput.value = e.desc || '';
-        // Keep image as-is unless a new file is chosen
-        // Mark edit mode
-        form.dataset.editIndex = String(index);
-        form.querySelector('.cta').textContent = 'Update Entry';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    async function handleSubmit(e) {
-        e.preventDefault();
-        const date = dateInput.value || new Date().toISOString().slice(0, 10);
-        const amount = parseFloat(String(amountInput.value || '0'));
-        const desc = notesInput.value.trim();
-
-        // Prepare image if selected
-        let imageData = '';
-        const file = imageInput.files && imageInput.files[0];
-        if (file) {
-            try { imageData = await toBase64(file); } catch (_) { imageData = ''; }
-        }
-
-        const entries = loadEntries();
-        const payload = { date, desc, amount: isNaN(amount) ? 0 : amount, image: imageData };
-
-        if (form.dataset.editIndex) {
-            const i = parseInt(form.dataset.editIndex, 10);
-            // Preserve previous image if new one not selected
-            if (!imageData && entries[i] && entries[i].image) payload.image = entries[i].image;
-            entries[i] = payload;
-            delete form.dataset.editIndex;
-            form.querySelector('.cta').textContent = 'Add Entry';
-        } else {
-            entries.push(payload);
-        }
-
-        saveEntries(entries);
-        render(entries);
-        form.reset();
-        dateInput.value = new Date().toISOString().slice(0, 10);
-        previewEl.textContent = '';
-        previewEl.classList.remove('visible');
-    }
-
-    form.addEventListener('submit', handleSubmit);
-
-    // Initial render
-    render(loadEntries());
-})();
-
-
+// Initialize the journal when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    window.journal = new TradingJournal();
+});
