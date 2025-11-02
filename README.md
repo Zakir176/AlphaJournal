@@ -43,7 +43,6 @@ AlphaJournal/
 - Open: http://localhost:8080
 
 ## Themes
-- Landing page remains visually dark-first.
 - Trading Journal supports light and dark themes controlled via a toggle. The selection is persisted to localStorage (key: `theme`).
 - journal.css defines both palettes via CSS custom properties on [data-theme="light"|"dark"].
 
